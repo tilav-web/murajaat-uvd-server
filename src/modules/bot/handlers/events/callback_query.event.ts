@@ -29,6 +29,9 @@ export const callbackQueryEvent = (
     try {
       let statusText = '';
       let emergencyStatus: EmergencyStatus;
+      let newText = '';
+      let newCaption = '';
+      const parseMode: 'HTML' | undefined = 'HTML';
 
       if (action === 'confirm_emergency') {
         statusText = '✅ <b>Tasdiqlangan xabar:</b>';
@@ -76,3 +79,65 @@ export const callbackQueryEvent = (
         updatedEmergency.message_type === 'animation'
       ) {
         newCaption = `${statusText}\n\n${userDetails}${updatedEmergency.message_content || ''}`;
+      } else {
+        // For messages without text or caption (e.g., stickers, voice messages without caption)
+        // We will just send the status text and then edit the message without modification.
+        await bot.api.editMessageCaption(
+          groupId,
+          parseInt(groupMessageId, 10),
+          {
+            caption: `${statusText}\n\n${userDetails}`,
+            parse_mode: 'HTML',
+          },
+        );
+        await ctx.answerCallbackQuery({
+          text: `Murojaat ${action === 'confirm_emergency' ? 'tasdiqlandi' : 'bekor qilindi'}!`,
+        });
+        await ctx.editMessageText(
+          `Murojaatingiz ${action === 'confirm_emergency' ? 'tasdiqlandi' : 'bekor qilindi'}.`,
+        );
+        return;
+      }
+
+      if (updatedEmergency.message_type === 'text') {
+        await bot.api.editMessageText(
+          groupId,
+          parseInt(groupMessageId, 10),
+          newText,
+          {
+            parse_mode: parseMode,
+          },
+        );
+      } else if (
+        updatedEmergency.message_type === 'photo' ||
+        updatedEmergency.message_type === 'video' ||
+        updatedEmergency.message_type === 'document' ||
+        updatedEmergency.message_type === 'audio' ||
+        updatedEmergency.message_type === 'voice' ||
+        updatedEmergency.message_type === 'animation'
+      ) {
+        await bot.api.editMessageCaption(
+          groupId,
+          parseInt(groupMessageId, 10),
+          {
+            caption: newCaption,
+            parse_mode: parseMode,
+          },
+        );
+      }
+
+      await ctx.answerCallbackQuery({
+        text: `Murojaat ${action === 'confirm_emergency' ? 'tasdiqlandi' : 'bekor qilindi'}!`,
+      });
+      await ctx.editMessageText(
+        `Murojaatingiz ${action === 'confirm_emergency' ? 'tasdiqlandi' : 'bekor qilindi'}.`,
+      );
+    } catch (error) {
+      console.error('Callback query xatoligi:', error);
+      await ctx.answerCallbackQuery({
+        text: 'Xatolik yuz berdi. Iltimos, qaytadan urinib koʻring.',
+        show_alert: true,
+      });
+    }
+  });
+};
