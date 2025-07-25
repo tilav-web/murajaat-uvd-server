@@ -63,7 +63,9 @@ export const callbackQueryEvent = (
 
       const userTelegramId = updatedEmergency.user.telegram_id;
       const userFullName = updatedEmergency.user.full_name || '';
-      const userUsername = updatedEmergency.user.username ? `@${updatedEmergency.user.username}` : '';
+      const userUsername = updatedEmergency.user.username
+        ? `@${updatedEmergency.user.username}`
+        : '';
       const userPhone = updatedEmergency.user.phone || '';
 
       const userDetails = `Foydalanuvchi ma'lumotlari:\nID: ${userTelegramId}\nTo'liq ism: ${userFullName}\nUsername: ${userUsername}\nTelefon: ${userPhone}\n\n`;
