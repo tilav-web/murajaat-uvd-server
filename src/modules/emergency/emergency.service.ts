@@ -99,6 +99,7 @@ export class EmergencyService {
   ): Promise<EmergencyDocument | null> {
     return this.emergencyModel
       .findOneAndUpdate({ group_message_id: id }, { status }, { new: true })
+      .populate('user')
       .exec();
   }
 
